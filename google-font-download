@@ -1,0 +1,77 @@
+#!/bin/bash
+declare -a families
+families+=('PT Sans:400')
+families+=('PT Sans:700')
+families+=('PT Sans:400italic')
+families+=('PT Sans:700italic')
+families+=('PT Serif:400')
+families+=('PT Serif:700')
+families+=('PT Serif:400italic')
+families+=('PT Serif:700italic')
+
+url="http://fonts.googleapis.com/css"
+css="font.css"
+
+declare -A useragent
+useragent[eot]='Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)'
+useragent[woff]='Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0'
+useragent[svg]='Mozilla/4.0 (iPad; CPU OS 4_0_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/4.1 Mobile/9A405 Safari/7534.48.3'
+useragent[ttf]='Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.54.16 (KHTML, like Gecko) Version/5.1.4 Safari/534.54.16'
+
+>"$css"
+for family in "${families[@]}"; do
+	echo -n "Downloading ${family}... "
+	printf "@font-face {\n" >>"$css"
+
+	fontname="$(echo "$family" | awk -F : '{print $1}')"
+	fontstyle="$(echo "$family" | awk -F : '{print $2}')"
+	fontweight="$(echo "$fontstyle" | sed -E 's/italic$//g')"
+
+	printf "\tfont-family: '%s';\n" "$(echo "$family" | awk -F : '{print $1}')" >>"$css"
+
+	case "$fontstyle" in
+		*italic)
+			printf "\tfont-style: italic;\n" >>"$css"
+			;;
+		*)
+			printf "\tfont-style: normal;\n" >>"$css"
+			;;
+	esac
+
+	printf "\tfont-weight: %s;\n" "$fontweight" >>"$css"
+
+	printf "\tsrc:\n" >>"$css"
+
+	for uakey in eot woff ttf svg; do
+		echo -n "$uakey "
+		if [ "$uakey" != "svg" ]; then
+			pattern="http:\\/\\/[^\\)]+\\.$uakey"
+		else
+			pattern="http:\\/\\/[^\\)]+"
+		fi
+		file="$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" "$url" | grep -Eo "$pattern" | sort -u)"
+		printf "\t\t/* from %s */\n" "$file" >>"$css"
+		if [ "$uakey" == "svg" ]; then
+			svgname="$(echo "$file" | sed -E 's/^[^#]+#(.*)$/\1/g')"
+		fi
+		curl -sfL "$file" -o "${family}.$uakey"
+
+		case "$uakey" in
+			eot)
+				printf "\t\turl('%s?#iefix') format('embedded-opentype'),\n" "${family}.$uakey" >>"$css"
+				;;
+			woff)
+				printf "\t\turl('%s') format('woff'),\n" "${family}.$uakey" >>"$css"
+				;;
+			ttf)
+				printf "\t\turl('%s') format('ttd'),\n" "${family}.$uakey" >>"$css"
+				;;
+			svg)
+				printf "\t\turl('%s#%s') format('svg');\n" "${family}.${uakey}" "$svgname" >>"$css"
+				;;
+		esac
+	done
+
+	printf "}\n" >>"$css"
+	echo
+done
