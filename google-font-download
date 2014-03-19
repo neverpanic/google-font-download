@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 declare -a families
 families+=('PT Sans:400')
 families+=('PT Sans:700')
@@ -64,7 +64,7 @@ for family in "${families[@]}"; do
 				printf "\t\turl('%s') format('woff'),\n" "${family}.$uakey" >>"$css"
 				;;
 			ttf)
-				printf "\t\turl('%s') format('ttd'),\n" "${family}.$uakey" >>"$css"
+				printf "\t\turl('%s') format('ttf'),\n" "${family}.$uakey" >>"$css"
 				;;
 			svg)
 				printf "\t\turl('%s#%s') format('svg');\n" "${family}.${uakey}" "$svgname" >>"$css"
