@@ -23,9 +23,9 @@ for family in "${families[@]}"; do
 	echo -n "Downloading ${family}... "
 	printf "@font-face {\n" >>"$css"
 
-	fontname="$(echo "$family" | awk -F : '{print $1}')"
-	fontstyle="$(echo "$family" | awk -F : '{print $2}')"
-	fontweight="$(echo "$fontstyle" | sed -E 's/italic$//g')"
+	fontname=$(echo "$family" | awk -F : '{print $1}')
+	fontstyle=$(echo "$family" | awk -F : '{print $2}')
+	fontweight=$(echo "$fontstyle" | sed -E 's/italic$//g')
 
 	printf "\tfont-family: '%s';\n" "$(echo "$family" | awk -F : '{print $1}')" >>"$css"
 
@@ -42,8 +42,8 @@ for family in "${families[@]}"; do
 
 	printf "\tsrc:\n" >>"$css"
 
-	local_name="$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*src: local\\('([^']+)'\\),.*$/\1/g")"
-	local_postscript_name="$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*, local\\('([^']+)'\\),.*$/\1/g")"
+	local_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*src: local\\('([^']+)'\\),.*$/\\1/g")
+	local_postscript_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*, local\\('([^']+)'\\),.*$/\\1/g")
 
 	printf "\t\tlocal('%s'),\n" "$local_name" >>"$css"
 	printf "\t\tlocal('%s'),\n" "$local_postscript_name" >>"$css"
@@ -56,10 +56,10 @@ for family in "${families[@]}"; do
 		else
 			pattern="http:\\/\\/[^\\)]+"
 		fi
-		file="$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" "$url" | grep -Eo "$pattern" | sort -u)"
+		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" "$url" | grep -Eo "$pattern" | sort -u)
 		printf "\t\t/* from %s */\n" "$file" >>"$css"
 		if [ "$uakey" == "svg" ]; then
-			svgname="$(echo "$file" | sed -E 's/^[^#]+#(.*)$/\1/g')"
+			svgname=$(echo "$file" | sed -E 's/^[^#]+#(.*)$/\1/g')
 		fi
 		curl -sfL "$file" -o "${family}.$uakey"
 
