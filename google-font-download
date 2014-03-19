@@ -42,6 +42,13 @@ for family in "${families[@]}"; do
 
 	printf "\tsrc:\n" >>"$css"
 
+	local_name="$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*src: local\\('([^']+)'\\),.*$/\1/g")"
+	local_postscript_name="$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*, local\\('([^']+)'\\),.*$/\1/g")"
+
+	printf "\t\tlocal('%s'),\n" "$local_name" >>"$css"
+	printf "\t\tlocal('%s'),\n" "$local_postscript_name" >>"$css"
+
+
 	for uakey in eot woff ttf svg; do
 		echo -n "$uakey "
 		if [ "$uakey" != "svg" ]; then
