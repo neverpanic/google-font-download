@@ -38,7 +38,7 @@ for family in "${families[@]}"; do
 			;;
 	esac
 
-	printf "\tfont-weight: %s;\n" "$fontweight" >>"$css"
+	printf "\tfont-weight: %s;\n" "${fontweight:-normal}" >>"$css"
 
 	printf "\tsrc:\n" >>"$css"
 
