@@ -125,8 +125,8 @@ for family in "${families[@]}"; do
 	printf "\tsrc:\n" >>"$css"
 
 	# Determine the local names for the given fonts so we can use a locally-installed font if available.
-	local_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*src: local\\('([^']+)'\\),.*$/\\1/g")
-	local_postscript_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | sed -E "s/^.*, local\\('([^']+)'\\),.*$/\\1/g")
+	local_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | $ESED "s/^.*src: local\\('([^']+)'\\),.*$/\\1/g")
+	local_postscript_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | $ESED "s/^.*, local\\('([^']+)'\\),.*$/\\1/g")
 
 	# Some fonts don't have a local PostScript name.
 	printf "\t\tlocal('%s'),\n" "$local_name" >>"$css"
@@ -148,7 +148,7 @@ for family in "${families[@]}"; do
 		printf "\t\t/* from %s */\n" "$file" >>"$css"
 		if [ "$uakey" == "svg" ]; then
 			# SVG fonts need the font after a hash symbol, so extract the correct name from Google's CSS
-			svgname=$(echo "$file" | sed -E 's/^[^#]+#(.*)$/\1/g')
+			svgname=$(echo "$file" | $ESED 's/^[^#]+#(.*)$/\1/g')
 		fi
 		# Actually download the font file
 		curl -sfL "$file" -o "${fontnameescaped}.$uakey"
