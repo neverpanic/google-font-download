@@ -8,8 +8,12 @@
 # With modifications by
 #  - Chris Jung, campino2k.de, and
 #  - Robert, github.com/rotx.
+#  - Thomas Papamichail, https://gist.github.com/pointergr
 #
 # Changelog:
+#   Version 1.2, 2015-06-13
+#     - Add getopt interface
+#     - Support font subsets, modifications by Thomas Papamichail
 #   Version 1.1.1, 2015-04-09
 #     - Switch user agent to IE 8 for WOF to fix problems
 #   Version 1.1, 2014-06-21
@@ -20,6 +24,9 @@
 #     - Add license header and comments
 #     - Added sed extended regex flag detection
 #   Version 1.0, 2014-03-19
+#
+# If you made modifications you'd like to see merged into this script, please mail me a patch to 'cl' at 'clang' dot
+# 'name' or leave a comment at https://neverpanic.de/blog/2014/03/19/downloading-google-web-fonts-for-local-hosting/.
 #
 # License:
 #   Copyright (c) 2014-2015, Clemens Lang
@@ -43,39 +50,169 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #=======================================================================================================================
 
-#=======================================================================================================================
-# Place this script in the directory where you want the font files to be downloaded and a font.css file using the fonts
-# to be created. Adjust the list of fonts in the $families variable below with the names of the Google fonts you want to
-# use. If you like, you can adjust the $css variable to write the generated CSS to a different file. Not that this file
-# will be created and overwritten if it exists.
-#=======================================================================================================================
-
-declare -a families
-families+=('PT Sans:400')
-families+=('PT Sans:700')
-families+=('PT Sans:400italic')
-families+=('PT Sans:700italic')
-families+=('PT Serif:400')
-families+=('PT Serif:700')
-families+=('PT Serif:400italic')
-families+=('PT Serif:700italic')
-
-# Adjust this is you want the created file to have a different name. Note that this file will be overwritten!
-css="font.css"
-url="http://fonts.googleapis.com/css"
-
-#=======================================================================================================================
-# No user-serviceable parts below this line. If you just want to use this script, you can stop reading here.
-#
-# If you made modifications you'd like to see merged into this script, please mail me a patch to 'cl' at 'clang' dot
-# 'name' or leave a comment at https://neverpanic.de/blog/2014/03/19/downloading-google-web-fonts-for-local-hosting/.
-#=======================================================================================================================
-
 # Ensure the bash version is new enough. If it isn't error out with a helpful error message rather than crashing later.
 if [ ${BASH_VERSINFO[0]} -lt 4 ]; then
 	echo "Error: This script needs Bash 4.x to run." >&2
 	exit 1
 fi
+
+set -euo pipefail
+
+# Set up defaults
+css="font.css"
+lang="latin"
+format="all"
+url="http://fonts.googleapis.com/css"
+
+# Usage message
+usage() {
+	cat >&2 <<-EOF
+		Usage
+		-----
+		  ${0:-google-font-download} [OPTION...] [FONT...]
+
+		  google-font-download, a script to download a local copy of
+		  Google's webfonts and generate a CSS file to use them.
+
+		Options
+		-------
+		  -f FORMAT, --format=FORMAT
+		    Download the specified set of webfont formats from Google's
+		    servers. FORMAT is a comma-separated list of identifiers for
+		    webfont formats. Supported identifiers are eof, woff, svg,
+		    and ttf. Additionally, the special value \`all' expands to
+		    all supported formats. The default is \`$format'. Note that
+		    you may not really need all formats. In most cases, WOFF is
+		    enough. See http://caniuse.com/#search=woff for a current
+		    status.
+
+		  -h, --help
+		    Display this message and exit.
+
+		  -l LANGSPEC, --languages=LANGSPEC
+		    Download the specified subset of languages from Google's
+		    webfonts. LANGSPEC is a comma-separated list of idenfitiers
+		    for font subsets. Common identifiers are latin, latin-ext,
+		    cyrillic, cyrillic-ext, greek, greek-ext, etc. The default
+		    is \`$lang'.
+
+		  -o OUTPUT, --output=OUTPUT
+		    Write the generated CSS into OUTPUT. The file will be
+		    overwritten and will be created if it doesn't exist. The
+		    default is \`$css'.
+
+		Positional Arguments
+		--------------------
+		  This script accepts an arbitrary number of font specs. A font
+		  spec is any string that Google's servers will accept as
+		  famility URL parameter. Note that your font spec should *not*
+		  be URL-encoded and only one font weight is supported per font
+		  specification. If you want to download multiple font weights
+		  or styles, provide multiple font specs.
+
+		  For example, to download Open Sans in
+		   - light (300),
+		   - normal (400),
+		   - normal italic (400italic),
+		   - bold (700), and
+		   - bold italic (700italic),
+		  run:
+		    ${0:-google-font-download} "Open Sans:300" "Open Sans:400" \\
+		        "Open Sans:400italic" "Open Sans:700" \\
+		        "Open Sans:700italic"
+	EOF
+	exit 1
+}
+
+err_exit() {
+	echo >&2 "${0:-google-font-download}: Error: $1"
+	exit 2
+}
+
+misuse_exit() {
+	echo >&2 "${0:-google-font-download}: Error: $1"
+	echo >&2
+	usage
+}
+
+# Parse options
+temp=$(getopt -o f:hl:o: --long format:,help,languages:,output -n "${0:-google-font-download}" -- "$@")
+if [ $? != 0 ]; then
+	echo >&2
+	usage
+fi
+
+# Process arguments
+eval set -- "$temp"
+while true; do
+	case "$1" in
+		-f|--format)
+			format=$2
+			shift 2
+			;;
+		-h|--help)
+			usage
+			exit 1
+			;;
+		-l|--languages)
+			lang=$2
+			shift 2
+			;;
+		-o|--output)
+			css=$2
+			shift 2
+			;;
+		--)
+			shift
+			break
+			;;
+	esac
+done
+
+# Validate font family input
+declare -a families
+families=()
+for family do
+	families+=("$family")
+done
+if [ ${#families[@]} -eq 0 ]; then
+	misuse_exit "No font families given"
+fi
+
+# Validate font format input
+declare -a formats
+if [ "$format" = "all" ]; then
+	# Deal with the special "all" value
+	formats=("eot" "woff" "svg" "ttf")
+else
+	IFS=', ' read -a formats <<< "$format"
+	for f in ${formats[@]}; do
+		case "$f" in
+			eof|woff|svg|ttf)
+				;;
+			*)
+				err_exit "Unsupported font format \`${f}'"
+				;;
+		esac
+	done
+fi
+if [ ${#formats[@]} -eq 0 ]; then
+	misuse_exit "Empty list of font formats given"
+fi
+
+# Validate language input
+if [ "$lang" = "" ]; then
+	misuse_exit "Empty language given"
+fi
+
+# Sanity check on output file
+if [ "$css" = "" ]; then
+	misuse_exit "Output file is empty string"
+elif [ "$css" = "-" ]; then
+	# a single dash means output to stdout
+	css=/dev/stdout
+fi
+
 
 # Check whether sed is GNU or BSD sed, or rather, which parameter enables extended regex support. Note that GNU sed does
 # have -E as an undocumented compatibility option on some systems.
@@ -84,8 +221,7 @@ if [ "$(echo "test" | sed -E 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; the
 elif [ "$(echo "test" | sed -r 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; then
 	ESED="sed -r"
 else
-	echo "Error: $(which sed) seems to lack extended regex support with -E or -r." >&2
-	exit 2
+	err_exit "$(which sed) seems to lack extended regex support with -E or -r"
 fi
 
 # Store the useragents we're going to use to trick Google's servers into serving us the correct CSS file.
@@ -100,8 +236,11 @@ useragent[ttf]='Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.54.16 (KHTML, like 
 
 # Loop over the fonts, and download them one-by-one
 for family in "${families[@]}"; do
-	echo -n "Downloading ${family}... "
-	printf "@font-face {\n" >>"$css"
+	printf >&2 "Downloading %s..." "$family"
+
+	# Test whether the chosen combination of font and language subset
+	# exists; Google returns HTTP 400 if it doesn't
+	css_string=$(curl -sf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url") || continue
 
 	# Extract name, Windows-safe filename, font style and font weight from the font family name
 	fontname=$(echo "$family" | awk -F : '{print $1}')
@@ -109,36 +248,49 @@ for family in "${families[@]}"; do
 	fontstyle=$(echo "$family" | awk -F : '{print $2}')
 	fontweight=$(echo "$fontstyle" | $ESED 's/italic$//g')
 
-	printf "\tfont-family: '%s';\n" "$fontname" >>"$css"
+	numfontweight=$(echo "$fontweight" | tr -Cd ',')
+	if [ ${#numfontweight} -ge 1 ]; then
+		printf >&2 "Font specification contains multiple weights; this is unsupported\n"
+		continue
+	fi
+
+	printf >>"$css" "@font-face {\n"
+	printf >>"$css" "\tfont-family: '%s';\n" "$fontname"
 
 	# $fontstyle could be bolditalic, bold, italic, normal, or nothing.
 	case "$fontstyle" in
 		*italic)
-			printf "\tfont-style: italic;\n" >>"$css"
+			printf >>"$css" "\tfont-style: italic;\n"
 			;;
 		*)
-			printf "\tfont-style: normal;\n" >>"$css"
+			printf >>"$css" "\tfont-style: normal;\n"
 			;;
 	esac
 
 	# Either bold, a number, or empty. If empty, default to "normal".
-	printf "\tfont-weight: %s;\n" "${fontweight:-normal}" >>"$css"
-
-	printf "\tsrc:\n" >>"$css"
+	printf >>"$css" "\tfont-weight: %s;\n" "${fontweight:-normal}"
+	printf >>"$css" "\tsrc:\n"
 
 	# Determine the local names for the given fonts so we can use a locally-installed font if available.
-	local_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | $ESED "s/^.*src: local\\('([^']+)'\\),.*$/\\1/g")
-	local_postscript_name=$(curl -sf --get --data-urlencode "family=$family" "$url" | grep -E "src:" | $ESED "s/^.*, local\\('([^']+)'\\),.*$/\\1/g")
+	css_src_string=$(echo "$css_string" | grep "src:")
+	local_name=$(echo "$css_src_string" | $ESED "s/^.*src: local\\('([^']+)'\\),.*$/\\1/g")
+	local_postscript_name=$(echo "$css_src_string" | $ESED "s/^.*, local\\('([^']+)'\\),.*$/\\1/g")
 
 	# Some fonts don't have a local PostScript name.
-	printf "\t\tlocal('%s'),\n" "$local_name" >>"$css"
+	printf >>"$css" "\t\tlocal('%s'),\n" "$local_name"
 	if [ -n "$local_postscript_name" ]; then
-		printf "\t\tlocal('%s'),\n" "$local_postscript_name" >>"$css"
+		printf >>"$css" "\t\tlocal('%s'),\n" "$local_postscript_name"
 	fi
 
-	# For each font format, download the font file and print the corresponding CSS statements.
-	for uakey in eot woff ttf svg; do
-		echo -n "$uakey "
+	# For each requested font format, download the font file and print the corresponding CSS statements.
+	for ((uaidx=0; $uaidx < ${#formats[@]}; uaidx++)); do
+		uakey=${formats[$uaidx]}
+		if [ $uaidx -eq $(( ${#formats[@]} - 1 )) ]; then
+			terminator=";"
+		else
+			terminator=","
+		fi
+		printf >&2 "%s " "$uakey"
 
 		# Download Google's CSS and throw some regex at it to find the font's URL
 		if [ "$uakey" != "svg" ]; then
@@ -146,8 +298,8 @@ for family in "${families[@]}"; do
 		else
 			pattern="http:\\/\\/[^\\)]+"
 		fi
-		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" "$url" | grep -Eo "$pattern" | sort -u)
-		printf "\t\t/* from %s */\n" "$file" >>"$css"
+		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" | grep -Eo "$pattern" | sort -u)
+		printf >>"$css" "\t\t/* from %s */\n" "$file"
 		if [ "$uakey" == "svg" ]; then
 			# SVG fonts need the font after a hash symbol, so extract the correct name from Google's CSS
 			svgname=$(echo "$file" | $ESED 's/^[^#]+#(.*)$/\1/g')
@@ -158,20 +310,20 @@ for family in "${families[@]}"; do
 		# Generate the CSS statements required to include the downloaded file.
 		case "$uakey" in
 			eot)
-				printf "\t\turl('%s?#iefix') format('embedded-opentype'),\n" "${fontnameescaped}.$uakey" >>"$css"
+				printf >>"$css" "\t\turl('%s?#iefix') format('embedded-opentype')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			woff)
-				printf "\t\turl('%s') format('woff'),\n" "${fontnameescaped}.$uakey" >>"$css"
+				printf >>"$css" "\t\turl('%s') format('woff')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			ttf)
-				printf "\t\turl('%s') format('truetype'),\n" "${fontnameescaped}.$uakey" >>"$css"
+				printf >>"$css" "\t\turl('%s') format('truetype')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			svg)
-				printf "\t\turl('%s#%s') format('svg');\n" "${fontnameescaped}.${uakey}" "$svgname" >>"$css"
+				printf >>"$css" "\t\turl('%s#%s') format('svg')%s\n" "${fontnameescaped}.${uakey}" "$svgname" "${terminator}"
 				;;
 		esac
 	done
 
-	printf "}\n" >>"$css"
-	echo
+	printf >>"$css" "}\n"
+	printf >&2 "\n"
 done
