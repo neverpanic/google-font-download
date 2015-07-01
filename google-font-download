@@ -291,7 +291,7 @@ for family in "${families[@]}"; do
 	fi
 
 	# For each requested font format, download the font file and print the corresponding CSS statements.
-	for ((uaidx=0; $uaidx < ${#formats[@]}; uaidx++)); do
+	for ((uaidx=0; uaidx < ${#formats[@]}; uaidx++)); do
 		uakey=${formats[$uaidx]}
 		if [ $uaidx -eq $(( ${#formats[@]} - 1 )) ]; then
 			terminator=";"
