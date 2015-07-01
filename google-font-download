@@ -186,7 +186,7 @@ if [ "$format" = "all" ]; then
 	formats=("eot" "woff" "svg" "ttf")
 else
 	IFS=', ' read -a formats <<< "$format"
-	for f in ${formats[@]}; do
+	for f in "${formats[@]}"; do
 		case "$f" in
 			eof|woff|svg|ttf)
 				;;
