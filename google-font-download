@@ -281,11 +281,19 @@ for family in "${families[@]}"; do
 
 	# Determine the local names for the given fonts so we can use a locally-installed font if available.
 	css_src_string=$(echo "$css_string" | grep "src:")
-	local_name=$(echo "$css_src_string" | $ESED "s/^.*src: local\\('([^']+)'\\),.*$/\\1/g")
-	local_postscript_name=$(echo "$css_src_string" | $ESED "s/^.*, local\\('([^']+)'\\),.*$/\\1/g")
+	ret=0
+	local_name=$(echo "$css_src_string" | grep -Eo "src: local\\('[^']+'\\)," | $ESED "s/^src: local\\('([^']+)'\\),$/\\1/g") || ret=$?
+	if [ $ret -ne 0 ]; then
+		errors=1
+		printf >&2 "Failed to determine local font name\n"
+	fi
+	local_postscript_name=$(echo "$css_src_string" | grep -Eo ", local\\('[^']+'\\)," | $ESED "s/^, local\\('([^']+)'\\),$/\\1/g") || true
 
+	# When the local font name couldn't be determined, still produce a valid CSS file
+	if [ -n "$local_name" ]; then
+		printf >>"$css" "\t\tlocal('%s'),\n" "$local_name"
+	fi
 	# Some fonts don't have a local PostScript name.
-	printf >>"$css" "\t\tlocal('%s'),\n" "$local_name"
 	if [ -n "$local_postscript_name" ]; then
 		printf >>"$css" "\t\tlocal('%s'),\n" "$local_postscript_name"
 	fi
