@@ -235,6 +235,7 @@ useragent[ttf]='Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.54.16 (KHTML, like 
 >"$css"
 
 # Loop over the fonts, and download them one-by-one
+errors=0
 for family in "${families[@]}"; do
 	printf >&2 "Downloading %s..." "$family"
 
@@ -243,6 +244,7 @@ for family in "${families[@]}"; do
 	ret=0
 	css_string=$(curl -sSf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" 2>&1) || ret=$?
 	if [ $ret -ne 0 ]; then
+		errors=1
 		printf >&2 " error: %s\n" "${css_string}"
 		continue
 	fi
@@ -255,6 +257,7 @@ for family in "${families[@]}"; do
 
 	numfontweight=$(echo "$fontweight" | tr -Cd ',')
 	if [ ${#numfontweight} -ge 1 ]; then
+		errors=1
 		printf >&2 "Font specification contains multiple weights; this is unsupported\n"
 		continue
 	fi
@@ -332,3 +335,5 @@ for family in "${families[@]}"; do
 	printf >>"$css" "}\n"
 	printf >&2 "\n"
 done
+
+exit $errors
