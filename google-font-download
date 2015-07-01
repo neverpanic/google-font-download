@@ -240,7 +240,12 @@ for family in "${families[@]}"; do
 
 	# Test whether the chosen combination of font and language subset
 	# exists; Google returns HTTP 400 if it doesn't
-	css_string=$(curl -sf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url") || continue
+	ret=0
+	css_string=$(curl -sSf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" 2>&1) || ret=$?
+	if [ $ret -ne 0 ]; then
+		printf >&2 " error: %s\n" "${css_string}"
+		continue
+	fi
 
 	# Extract name, Windows-safe filename, font style and font weight from the font family name
 	fontname=$(echo "$family" | awk -F : '{print $1}')
