@@ -117,14 +117,46 @@ misuse_exit() {
 	usage
 }
 
+# Check for modern getopt(1) that quotes correctly; see #1 for rationale
+ret=0
+modern_getopt=1
+getopt -T >/dev/null || ret=$?
+if [ $ret -ne 4 ]; then
+	modern_getopt=0
+fi
+
 # Parse options
-temp=$(getopt -o f:hl:o: --long format:,help,languages:,output -n "${0:-google-font-download}" -- "$@")
-if [ $? != 0 ]; then
-	echo >&2
-	usage
+if [ $modern_getopt -eq 1 ]; then
+	ret=0
+	temp=$(getopt -o f:hl:o: --long format:,help,languages:,output -n "${0:-google-font-download}" -- "$@") || ret=$?
+	if [ $ret -ne 0 ]; then
+		echo >&2
+		usage
+	fi
+else
+	cols=$(tput cols) || cols=80
+	fmt $(( cols - 8 )) $cols >&2 <<-EOF
+		Warning: Old getopt(1) detected.
+
+		Your version of getopt(1) does not correctly deal with whitespace and does not support long options. You may
+		have to quote any special character arguments twice. For example, to download the 'Open Sans' font, use $0
+		"'Open Sans'". See https://github.com/neverpanic/google-font-download/issues/1 for more information.
+
+		You should consider upgrading to a more modern version of getopt(1).
+
+	EOF
+
+	ret=0
+	temp=$(getopt f:hl:o: $*) || ret=$?
+	if [ $ret -ne 0 ]; then
+		echo >&2
+		usage
+	fi
 fi
 
 # Process arguments
+# For the non-modern getopt(1), the eval and quoting is a hack to allow users to manually specify values that have been
+# quoted twice.
 eval set -- "$temp"
 while true; do
 	case "$1" in
