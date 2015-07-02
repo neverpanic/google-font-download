@@ -147,6 +147,7 @@ else
 	EOF
 
 	ret=0
+	# shellcheck disable=SC2048,SC2086
 	temp=$(getopt f:hl:o: $*) || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
