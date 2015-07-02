@@ -13,6 +13,8 @@ To run this script, you will need:
  - Bash (>= 4.x)
  - curl
  - getopt
+ - tput
+ - fmt
  - sed, in a version that has extended regex support using either `-E` (BSD) or `-r` (GNU)
  - awk
  - tr

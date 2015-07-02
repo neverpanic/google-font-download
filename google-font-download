@@ -50,16 +50,15 @@ url="http://fonts.googleapis.com/css"
 
 # Usage message
 usage() {
-	cat >&2 <<-EOF
-		Usage
-		-----
+	cols=$(tput cols) || cols=80
+	fmt $(( cols - 8 )) $cols >&2 <<-EOF
+		USAGE
 		  ${0:-google-font-download} [OPTION...] [FONT...]
 
 		  google-font-download, a script to download a local copy of
 		  Google's webfonts and generate a CSS file to use them.
 
-		Options
-		-------
+		OPTIONS
 		  -f FORMAT, --format=FORMAT
 		    Download the specified set of webfont formats from Google's
 		    servers. FORMAT is a comma-separated list of identifiers for
@@ -85,8 +84,7 @@ usage() {
 		    overwritten and will be created if it doesn't exist. The
 		    default is \`$css'.
 
-		Positional Arguments
-		--------------------
+		POSITIONAL ARGUMENTS
 		  This script accepts an arbitrary number of font specs. A font
 		  spec is any string that Google's servers will accept as
 		  famility URL parameter. Note that your font spec should *not*
