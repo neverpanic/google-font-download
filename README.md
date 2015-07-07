@@ -38,11 +38,11 @@ the terms.
     <dd>Download the specified set of webfont formats from Google's servers.
         <code>FORMAT</code> is a comma-separated list of identifiers for
         webfont formats. Supported identifiers are <code>eof</code>,
-        <code>woff</code>, <code>svg</code>, and <code>ttf</code>.
-        Additionally, the special value <code>all</code> expands to all
-        supported formats. The default is <code>all</code>. Note that you may
-        not really need all formats. In most cases, WOFF is enough. See
-        http://caniuse.com/#search=woff for a current status.</dd>
+        <code>woff</code>, <code>woff2</code>, <code>svg</code>, and
+        <code>ttf</code>. Additionally, the special value <code>all</code>
+        expands to all supported formats. The default is <code>all</code>. Note
+        that you may not really need all formats. In most cases, WOFF is enough.
+        See http://caniuse.com/#search=woff for a current status.</dd>
     <dt><code>-h</code>, <code>--help</code></dt>
     <dd>Display this message and exit.</dd>
     <dt><code>-l LANGSPEC</code>, <code>--languages=LANGSPEC</code></dt>
