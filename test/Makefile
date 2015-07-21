@@ -1,8 +1,9 @@
 TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param font-weight font-style
 TUT=../../google-font-download
 
-# to simplify debugging failing test cases
-#SHELL=bash -x
+# tests use bashisms, avoid failures on systems where dash is used
+# to simplify debugging failing test cases, use -x
+SHELL=bash -x
 
 .PHONY: test $(TESTS)
 
