@@ -37,7 +37,7 @@ the terms.
     <dt><code>-f FORMAT</code>, <code>--format=FORMAT</code></dt>
     <dd>Download the specified set of webfont formats from Google's servers.
         <code>FORMAT</code> is a comma-separated list of identifiers for
-        webfont formats. Supported identifiers are <code>eof</code>,
+        webfont formats. Supported identifiers are <code>eot</code>,
         <code>woff</code>, <code>woff2</code>, <code>svg</code>, and
         <code>ttf</code>. Additionally, the special value <code>all</code>
         expands to all supported formats. The default is <code>all</code>. Note

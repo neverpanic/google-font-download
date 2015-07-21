@@ -62,7 +62,7 @@ usage() {
 		  -f FORMAT, --format=FORMAT
 		    Download the specified set of webfont formats from Google's
 		    servers. FORMAT is a comma-separated list of identifiers for
-		    webfont formats. Supported identifiers are eof, woff, woff2,
+		    webfont formats. Supported identifiers are eot, woff, woff2,
 		    svg, and ttf. Additionally, the special value \`all' expands
 		    to all supported formats. The default is \`$format'. Note
 		    that you may not really need all formats. In most cases,
@@ -203,7 +203,7 @@ else
 	IFS=', ' read -a formats <<< "$format"
 	for f in "${formats[@]}"; do
 		case "$f" in
-			eof|woff|woff2|svg|ttf)
+			eot|woff|woff2|svg|ttf)
 				;;
 			*)
 				err_exit "Unsupported font format \`${f}'"
