@@ -1,0 +1,5 @@
+language: c
+install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq shellcheck vim-common file
+script: make && make test
