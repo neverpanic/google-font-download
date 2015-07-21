@@ -12,7 +12,7 @@ To run this script, you will need:
 
  - Bash (>= 4.x)
  - curl
- - getopt, preferrably a version that preserves quoted whitespace and long options
+ - getopt, preferrably a version that preserves quoted whitespace and supports long options
  - tput
  - fmt
  - sed, in a version that has extended regex support using either `-E` (BSD) or `-r` (GNU)
