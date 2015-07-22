@@ -11,4 +11,4 @@ shellcheck:
 	shellcheck $(TARGET)
 
 test:
-	make -C test
+	$(MAKE) -C test
