@@ -77,7 +77,8 @@ usage() {
 		    webfonts. LANGSPEC is a comma-separated list of idenfitiers
 		    for font subsets. Common identifiers are latin, latin-ext,
 		    cyrillic, cyrillic-ext, greek, greek-ext, etc. The default
-		    is \`$lang'.
+		    is \`$lang'. An undocumented language is \`all' which means
+		    the full (non-subset) files are served.
 
 		  -o OUTPUT, --output=OUTPUT
 		    Write the generated CSS into OUTPUT. The file will be
