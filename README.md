@@ -51,7 +51,8 @@ the terms.
         subsets. Common identifiers are <code>latin</code>,
         <code>latin-ext</code>, <code>cyrillic</code>,
         <code>cyrillic-ext</code>, <code>greek</code>, <code>greek-ext</code>,
-        etc. The default is <code>latin</code>.</dd>
+        etc. An undocumented language is <code>all</code> which means the full
+        (non-subset) files are served. The default is <code>latin</code>.</dd>
     <dt><code>-o OUTPUT</code>, <code>--output=OUTPUT</code></dt>
     <dd>Write the generated CSS into <code>OUTPUT</code>. The file will be
         overwritten and will be created if it doesn't exist. The default is
