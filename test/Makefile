@@ -3,7 +3,7 @@ TUT=../../google-font-download
 
 # tests use bashisms, avoid failures on systems where dash is used
 # to simplify debugging failing test cases, use -x
-SHELL=bash -x
+SHELL := bash
 
 .PHONY: test $(TESTS)
 
