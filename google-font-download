@@ -51,7 +51,7 @@ url="http://fonts.googleapis.com/css"
 # Usage message
 usage() {
 	cols=$(tput cols) || cols=80
-	fmt $(( cols - 8 )) $cols >&2 <<-EOF
+	fmt -w $(( cols - 8 )) >&2 <<-EOF
 		USAGE
 		  ${0:-google-font-download} [OPTION...] [FONT...]
 
@@ -136,7 +136,7 @@ if [ $modern_getopt -eq 1 ]; then
 	fi
 else
 	cols=$(tput cols) || cols=80
-	fmt $(( cols - 8 )) $cols >&2 <<-EOF
+	fmt -w $(( cols - 8 )) >&2 <<-EOF
 		Warning: Old getopt(1) detected.
 
 		Your version of getopt(1) does not correctly deal with whitespace and does not support long options. You may
