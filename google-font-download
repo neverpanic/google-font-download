@@ -46,7 +46,7 @@ set -euo pipefail
 css="font.css"
 lang="latin"
 format="all"
-url="http://fonts.googleapis.com/css"
+url="https://fonts.googleapis.com/css"
 
 # Usage message
 usage() {
@@ -333,9 +333,9 @@ for family in "${families[@]}"; do
 
 		# Download Google's CSS and throw some regex at it to find the font's URL
 		if [ "$uakey" != "svg" ]; then
-			pattern="http:\\/\\/[^\\)]+\\.$uakey"
+			pattern="https:\\/\\/[^\\)]+\\.$uakey"
 		else
-			pattern="http:\\/\\/[^\\)]+"
+			pattern="https:\\/\\/[^\\)]+"
 		fi
 		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" | grep -Eo "$pattern" | sort -u)
 		printf >>"$css" "\t\t/* from %s */\n" "$file"
