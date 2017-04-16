@@ -252,7 +252,7 @@ useragent[woff2]='Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Fi
 # shellcheck disable=SC2154
 useragent[svg]='Mozilla/4.0 (iPad; CPU OS 4_0_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/4.1 Mobile/9A405 Safari/7534.48.3'
 # shellcheck disable=SC2154
-useragent[ttf]='Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.54.16 (KHTML, like Gecko) Version/5.1.4 Safari/534.54.16'
+useragent[ttf]='Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) Safari/538.1 Daum/4.1'
 
 # Clear the output file
 >"$css"
