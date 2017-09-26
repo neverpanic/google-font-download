@@ -201,7 +201,7 @@ if [ "$format" = "all" ]; then
 	# Deal with the special "all" value
 	formats=("eot" "woff" "woff2" "svg" "ttf")
 else
-	IFS=', ' read -a formats <<< "$format"
+	IFS=', ' read -r -a formats <<< "$format"
 	for f in "${formats[@]}"; do
 		case "$f" in
 			eot|woff|woff2|svg|ttf)
@@ -255,7 +255,7 @@ useragent[svg]='Mozilla/4.0 (iPad; CPU OS 4_0_1 like Mac OS X) AppleWebKit/534.4
 useragent[ttf]='Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) Safari/538.1 Daum/4.1'
 
 # Clear the output file
->"$css"
+true >"$css"
 
 # Loop over the fonts, and download them one-by-one
 errors=0
