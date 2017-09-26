@@ -63,14 +63,14 @@ the terms.
   This script accepts an arbitrary number of font specs. A font spec consists
   of a font name as accepted by Google's servers, optionally followed by
   a colon, an optional font weight in numbers or the string "bold" and an
-  optional font style of "italic" for italics. In [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form):
+  optional font style of "italic" (or "i") for italics. In [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form):
 
   ```ebnf
   fontspec = fontname, [ ":", [ fontweight ], [ fontstyle ] ]
   fontweight = number | "bold"
   number = { digit }
   digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-  fontstyle = "italic"
+  fontstyle = "italic" | "i"
   ```
 
   While Google's servers will accept other inputs and abbreviations for font
