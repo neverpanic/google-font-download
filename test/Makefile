@@ -29,7 +29,7 @@ svg:
 
 ttf:
 	$(V)echo "---> Testing $@"
-	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f $@ "Ubuntu" && [ "$$(file --mime-type Ubuntu.$@ | cut -d " " -f 2)" == "application/x-font-ttf" ]); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f $@ "Ubuntu" && [ "$$(xxd -l 5 -ps Ubuntu.$@)" == "0001000000" ]); ret=$$?; rm -rf $@ && exit $$ret
 	$(V)echo "     OK"
 
 # WOFF starts with "wOFF" in ASCII, which happens to be 77 4f 46 46
