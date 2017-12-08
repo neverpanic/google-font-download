@@ -47,6 +47,7 @@ css="font.css"
 lang="latin"
 format="all"
 url="https://fonts.googleapis.com/css"
+urlref=""
 
 # Usage message
 usage() {
@@ -129,7 +130,7 @@ fi
 # Parse options
 if [ $modern_getopt -eq 1 ]; then
 	ret=0
-	temp=$(getopt -o f:hl:o: --long format:,help,languages:,output -n "${0:-google-font-download}" -- "$@") || ret=$?
+	temp=$(getopt -o u:f:hl:o: --long url:,format:,help,languages:,output -n "${0:-google-font-download}" -- "$@") || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
@@ -149,7 +150,7 @@ else
 
 	ret=0
 	# shellcheck disable=SC2048,SC2086
-	temp=$(getopt f:hl:o: $*) || ret=$?
+	temp=$(getopt u:f:hl:o: $*) || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
@@ -162,6 +163,10 @@ fi
 eval set -- "$temp"
 while true; do
 	case "$1" in
+		-u|--url)
+			urlref=$2
+			shift 2
+			;;
 		-f|--format)
 			format=$2
 			shift 2
@@ -185,9 +190,14 @@ while true; do
 	esac
 done
 
-# Validate font family input
+
 declare -a families
 families=()
+# Detect and parse url
+if [[ $urlref =~ https:// ]]; then
+IFS="\\" read -r -a families <<< "$(perl -e '$ARGV[0] =~ s#\+# #g; $ARGV[0] =~ s#.*family=##; my @urlr = split(/\|/, $ARGV[0]); my @final; foreach my $x (@urlr) { if (my ($name,$value) = $x =~ m/(.*):(.*)/) { if ($value =~ m/,/) { my @commas = split(/,/,$value); for (my $i = 0; $i < scalar @commas; $i++) { $final[$i] = "$name:" . $commas[$i]; print "$final[$i]\\"; } } else { print "$x\\"; } } else { print "$x\\"; } }' "$urlref")"
+fi
+# Validate font family input
 for family do
 	families+=("$family")
 done
