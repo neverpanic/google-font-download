@@ -28,6 +28,7 @@
 #  - Chris Jung, campino2k.de, and
 #  - Robert, github.com/rotx.
 #  - Thomas Papamichail, https://gist.github.com/pointergr
+#	 - Musikid
 ##
 
 ##
@@ -194,11 +195,15 @@ done
 declare -a families
 families=()
 # Detect and parse url
-if [[ $urlref =~ https:// ]]; then
+if [[ $urlref != "" ]]; then
 IFS="\\" read -r -a families <<< "$(perl -e '$ARGV[0] =~ s#\+# #g; $ARGV[0] =~ s#.*family=##; my @urlr = split(/\|/, $ARGV[0]); my @final; foreach my $x (@urlr) { if (my ($name,$value) = $x =~ m/(.*):(.*)/) { if ($value =~ m/,/) { my @commas = split(/,/,$value); for (my $i = 0; $i < scalar @commas; $i++) { $final[$i] = "$name:" . $commas[$i]; print "$final[$i]\\"; } } else { print "$x\\"; } } else { print "$x\\"; } }' "$urlref")"
 fi
 # Validate font family input
 for family do
+	# Directly parse url
+	if [[ "$family" =~ http ]]; then
+		IFS="\\" read -r -a families <<< "$(perl -e '$ARGV[0] =~ s#\+# #g; $ARGV[0] =~ s#.*family=##; my @urlr = split(/\|/, $ARGV[0]); my @final; foreach my $x (@urlr) { if (my ($name,$value) = $x =~ m/(.*):(.*)/) { if ($value =~ m/,/) { my @commas = split(/,/,$value); for (my $i = 0; $i < scalar @commas; $i++) { $final[$i] = "$name:" . $commas[$i]; print "$final[$i]\\"; } } else { print "$x\\"; } } else { print "$x\\"; } }' "$family")"
+	fi
 	families+=("$family")
 done
 if [ ${#families[@]} -eq 0 ]; then
