@@ -28,6 +28,7 @@
 #  - Chris Jung, campino2k.de, and
 #  - Robert, github.com/rotx.
 #  - Thomas Papamichail, https://gist.github.com/pointergr
+#  - Musikid
 ##
 
 ##
@@ -47,6 +48,7 @@ css="font.css"
 lang="latin"
 format="all"
 url="https://fonts.googleapis.com/css"
+urlref=""
 
 # Usage message
 usage() {
@@ -118,6 +120,13 @@ misuse_exit() {
 	usage
 }
 
+# function that act like split in perl. Syntax: splitarr IFS $var array
+splitarr() {
+  if [[ "$2" =~ $1 ]]; then
+    IFS="$1" read -r -a "$3" <<< "$2"
+  fi
+}
+
 # Check for modern getopt(1) that quotes correctly; see #1 for rationale
 ret=0
 modern_getopt=1
@@ -129,7 +138,7 @@ fi
 # Parse options
 if [ $modern_getopt -eq 1 ]; then
 	ret=0
-	temp=$(getopt -o f:hl:o: --long format:,help,languages:,output -n "${0:-google-font-download}" -- "$@") || ret=$?
+	temp=$(getopt -o u:f:hl:o: --long url:,format:,help,languages:,output -n "${0:-google-font-download}" -- "$@") || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
@@ -149,7 +158,7 @@ else
 
 	ret=0
 	# shellcheck disable=SC2048,SC2086
-	temp=$(getopt f:hl:o: $*) || ret=$?
+	temp=$(getopt u:f:hl:o: $*) || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
@@ -162,6 +171,10 @@ fi
 eval set -- "$temp"
 while true; do
 	case "$1" in
+		-u|--url)
+			urlref=$2
+			shift 2
+			;;
 		-f|--format)
 			format=$2
 			shift 2
@@ -185,11 +198,102 @@ while true; do
 	esac
 done
 
-# Validate font family input
+
 declare -a families
 families=()
+declare -a commas
+commas=()
+# Detect and parse url
+if [[ $urlref != "" ]]; then
+	urlref=$(echo "$urlref" | grep -Po 'family=\K(.*)')
+	if [[ "$urlref" =~ \| ]]; then
+		splitarr '|' "$urlref" temp
+		for line in "${temp[@]}"
+		do
+			if [[ "$line" =~ \+ ]] || [[ "$line" =~ , ]] ; then
+				if [[ "$line" =~ \+ ]]; then
+					line=${line//\+/ }
+				fi
+				if [[ "$line" =~ , ]]; then
+					number=$(echo "$line" | grep -Po ':\K(.*)')
+					name=$(echo "$line" | grep -Po '(.*):')
+					splitarr ',' "$number" commas
+					for (( i = 0; i < ${#commas[@]}; i++ )); do
+						 families+=("$name${commas[$i]}")
+					done
+				else
+					families+=("$line")
+				fi
+			else
+				families+=("$line")
+			fi
+		done
+	else
+		if [[ "$urlref" =~ \+ ]] || [[ "$urlref" =~ , ]] ; then
+			if [[ "$urlref" =~ \+ ]]; then
+				line=${line//\+/ }
+			fi
+			if [[ "$urlref" =~ , ]]; then
+				number=$(echo "$urlref" | grep -Po ':\K(.*)')
+				name=$(echo "$urlref" | grep -Po '(.*):')
+				splitarr ',' "$number" commas
+				for (( i = 0; i < ${#commas[@]}; i++ )); do
+					 families+=("$name${commas[$i]}")
+				done
+			else
+				families+=("$line")
+			fi
+		fi
+	fi
+fi
+
+# Validate font family input
 for family do
+	# Directly parse url
+	if [[ "$family" =~ http ]]; then
+		family=$(echo "$family" | grep -Po 'family=\K(.*)')
+		if [[ "$family" =~ \| ]]; then
+			splitarr '|' "$family" temp
+			for line in "${temp[@]}"
+			do
+				if [[ "$line" =~ \+ ]] || [[ "$line" =~ , ]] ; then
+					if [[ "$line" =~ \+ ]]; then
+						line=${line//\+/ }
+					fi
+					if [[ "$line" =~ , ]]; then
+						number=$(echo "$line" | grep -Po ':\K(.*)')
+						name=$(echo "$line" | grep -Po '(.*):')
+						splitarr ',' "$number" commas
+						for (( i = 0; i < ${#commas[@]}; i++ )); do
+							families+=("$name${commas[$i]}")
+						done
+					else
+						families+=("$line")
+					fi
+				else
+					families+=("$line")
+				fi
+			done
+		else
+			if [[ "$family" =~ \+ ]] || [[ "$family" =~ , ]] ; then
+				if [[ "$family" =~ \+ ]]; then
+					family=${family//\+/ }
+				fi
+				if [[ "$family" =~ , ]]; then
+					number=$(echo "$family" | grep -Po ':\K(.*)')
+					name=$(echo "$family" | grep -Po '(.*):')
+					splitarr ',' "$number" commas
+					for (( i = 0; i < ${#commas[@]}; i++ )); do
+						 families+=("$name${commas[$i]}")
+					done
+				else
+					families+=("$family")
+				fi
+			fi
+		fi
+	else
 	families+=("$family")
+	fi
 done
 if [ ${#families[@]} -eq 0 ]; then
 	misuse_exit "No font families given"
