@@ -19,6 +19,7 @@ To run this script, you will need:
  - awk
  - tr
  - grep
+ - perl
 
 ## License
 
@@ -34,6 +35,8 @@ the terms.
 ### Options
 
 <dl>
+    <dt><code>-u URL</code>, <code>--url=URL</code></dt>
+    <dd>Dowload the fonts specified in the URL. Note: You can mix it with normal arguments (See below).</dd>
     <dt><code>-f FORMAT</code>, <code>--format=FORMAT</code></dt>
     <dd>Download the specified set of webfont formats from Google's servers.
         <code>FORMAT</code> is a comma-separated list of identifiers for
@@ -66,6 +69,7 @@ the terms.
   optional font style of "italic" (or "i") for italics. In [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form):
 
   ```ebnf
+  url = URL
   fontspec = fontname, [ ":", [ fontweight ], [ fontstyle ] ]
   fontweight = number | "bold"
   number = { digit }
@@ -76,7 +80,7 @@ the terms.
   While Google's servers will accept other inputs and abbreviations for font
   weight and font style, they are not supported by this script.
 
-  Note that your font spec should *not* be URL-encoded and only one font weight
+  Note: if you don't use the URL argument, your font spec should *not* be URL-encoded and only one font weight
   is supported per font specification. If you want to download multiple font
   weights or styles, provide multiple font specs.
 
@@ -91,4 +95,13 @@ the terms.
 google-font-download \
     "Open Sans:300" "Open Sans:400" "Open Sans:400italic" \
     "Open Sans:700" "Open Sans:700italic"
+```
+or in URL format:
+```bash
+google-font-download --url="https://fonts.google.com/?selection.family=Open+Sans:300,400,400i,700,700i"
+```
+You can also mix the arguments:
+```bash
+google-font-download --url="https://fonts.google.com/?selection.family=Open+Sans:300,400,400i" \
+"Open Sans:700" "Open Sans:700i"
 ```

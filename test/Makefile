@@ -1,4 +1,4 @@
-TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param font-weight font-style
+TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param font-weight font-style url-arg
 TUT=../../google-font-download
 
 # tests use bashisms, avoid failures on systems where dash is used
@@ -72,4 +72,9 @@ font-weight:
 font-style:
 	$(V)echo "---> Testing font style support"
 	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff "Ubuntu:700italic" && grep "font-style: italic;" "font.css" >/dev/null); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+url-arg:
+	$(V)echo "---> Testing download with a URL"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff -u "https://fonts.google.com/?query=lora&selection.family=Lora|Ubuntu"  && [ -f "Ubuntu.woff" ] && [ -f "Lora.woff" ]); ret=$$?; rm -rf $@ && exit $$ret
 	$(V)echo "     OK"
