@@ -448,7 +448,13 @@ for family in "${families[@]}"; do
 			svgname=$(echo "$file" | $ESED 's/^[^#]+#(.*)$/\1/g')
 		fi
 		# Actually download the font file
-		curl -sfL "$file" -o "${fontnameescaped}.$uakey"
+		ret=0
+		download_error=$(curl -sSfL "$file" -o "${fontnameescaped}.$uakey" 2>&1) || ret=$?
+		if [ $ret -ne 0 ]; then
+			errors=1
+			printf >&2 "\nerror downloading %s: %s\n" "${uakey}" "${download_error}"
+			continue
+		fi
 
 		# Generate the CSS statements required to include the downloaded file.
 		case "$uakey" in
