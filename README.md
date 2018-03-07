@@ -68,7 +68,6 @@ the terms.
   optional font style of "italic" (or "i") for italics. In [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form):
 
   ```ebnf
-  url = URL
   fontspec = fontname, [ ":", [ fontweight ], [ fontstyle ] ]
   fontweight = number | "bold"
   number = { digit }
