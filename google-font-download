@@ -377,7 +377,7 @@ for family in "${families[@]}"; do
 	css_string=$(curl -sSf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" 2>&1) || ret=$?
 	if [ $ret -ne 0 ]; then
 		errors=1
-		printf >&2 " error: %s\n" "${css_string}"
+		printf >&2 " error: %s\\n" "${css_string}"
 		continue
 	fi
 
@@ -390,26 +390,26 @@ for family in "${families[@]}"; do
 	numfontweight=$(echo "$fontweight" | tr -Cd ',')
 	if [ ${#numfontweight} -ge 1 ]; then
 		errors=1
-		printf >&2 "Font specification contains multiple weights; this is unsupported\n"
+		printf >&2 "Font specification contains multiple weights; this is unsupported\\n"
 		continue
 	fi
 
-	printf >>"$css" "@font-face {\n"
-	printf >>"$css" "\tfont-family: '%s';\n" "$fontname"
+	printf >>"$css" "@font-face {\\n"
+	printf >>"$css" "\\tfont-family: '%s';\\n" "$fontname"
 
 	# $fontstyle could be bolditalic, bold, italic, normal, or nothing.
 	case "$fontstyle" in
 		*italic)
-			printf >>"$css" "\tfont-style: italic;\n"
+			printf >>"$css" "\\tfont-style: italic;\\n"
 			;;
 		*)
-			printf >>"$css" "\tfont-style: normal;\n"
+			printf >>"$css" "\\tfont-style: normal;\\n"
 			;;
 	esac
 
 	# Either bold, a number, or empty. If empty, default to "normal".
-	printf >>"$css" "\tfont-weight: %s;\n" "${fontweight:-normal}"
-	printf >>"$css" "\tsrc:\n"
+	printf >>"$css" "\\tfont-weight: %s;\\n" "${fontweight:-normal}"
+	printf >>"$css" "\\tsrc:\\n"
 
 	# Determine the local names for the given fonts so we can use a locally-installed font if available.
 	css_src_string=$(echo "$css_string" | grep "src:")
@@ -417,17 +417,17 @@ for family in "${families[@]}"; do
 	local_name=$(echo "$css_src_string" | grep -Eo "src: local\\('[^']+'\\)," | $ESED "s/^src: local\\('([^']+)'\\),$/\\1/g") || ret=$?
 	if [ $ret -ne 0 ]; then
 		errors=1
-		printf >&2 "Failed to determine local font name\n"
+		printf >&2 "Failed to determine local font name\\n"
 	fi
 	local_postscript_name=$(echo "$css_src_string" | grep -Eo ", local\\('[^']+'\\)," | $ESED "s/^, local\\('([^']+)'\\),$/\\1/g") || true
 
 	# When the local font name couldn't be determined, still produce a valid CSS file
 	if [ -n "$local_name" ]; then
-		printf >>"$css" "\t\tlocal('%s'),\n" "$local_name"
+		printf >>"$css" "\\t\\tlocal('%s'),\\n" "$local_name"
 	fi
 	# Some fonts don't have a local PostScript name.
 	if [ -n "$local_postscript_name" ]; then
-		printf >>"$css" "\t\tlocal('%s'),\n" "$local_postscript_name"
+		printf >>"$css" "\\t\\tlocal('%s'),\\n" "$local_postscript_name"
 	fi
 
 	# For each requested font format, download the font file and print the corresponding CSS statements.
@@ -447,7 +447,7 @@ for family in "${families[@]}"; do
 			pattern="https:\\/\\/[^\\)]+"
 		fi
 		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" | grep -Eo "$pattern" | sort -u)
-		printf >>"$css" "\t\t/* from %s */\n" "$file"
+		printf >>"$css" "\\t\\t/* from %s */\\n" "$file"
 		if [ "$uakey" == "svg" ]; then
 			# SVG fonts need the font after a hash symbol, so extract the correct name from Google's CSS
 			svgname=$(echo "$file" | $ESED 's/^[^#]+#(.*)$/\1/g')
@@ -457,32 +457,32 @@ for family in "${families[@]}"; do
 		download_error=$(curl -sSfL "$file" -o "${fontnameescaped}.$uakey" 2>&1) || ret=$?
 		if [ $ret -ne 0 ]; then
 			errors=1
-			printf >&2 "\nerror downloading %s: %s\n" "${uakey}" "${download_error}"
+			printf >&2 "\\nerror downloading %s: %s\\n" "${uakey}" "${download_error}"
 			continue
 		fi
 
 		# Generate the CSS statements required to include the downloaded file.
 		case "$uakey" in
 			eot)
-				printf >>"$css" "\t\turl('%s?#iefix') format('embedded-opentype')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s?#iefix') format('embedded-opentype')%s\\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			woff)
-				printf >>"$css" "\t\turl('%s') format('woff')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s') format('woff')%s\\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			woff2)
-				printf >>"$css" "\t\turl('%s') format('woff2')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s') format('woff2')%s\\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			ttf)
-				printf >>"$css" "\t\turl('%s') format('truetype')%s\n" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s') format('truetype')%s\\n" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			svg)
-				printf >>"$css" "\t\turl('%s#%s') format('svg')%s\n" "${fontnameescaped}.${uakey}" "$svgname" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s#%s') format('svg')%s\\n" "${fontnameescaped}.${uakey}" "$svgname" "${terminator}"
 				;;
 		esac
 	done
 
-	printf >>"$css" "}\n"
-	printf >&2 "\n"
+	printf >>"$css" "}\\n"
+	printf >&2 "\\n"
 done
 
 exit $errors
