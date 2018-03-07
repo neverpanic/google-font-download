@@ -231,7 +231,7 @@ if [[ $urlref != "" ]]; then
 	else
 		if [[ "$urlref" =~ \+ ]] || [[ "$urlref" =~ , ]] ; then
 			if [[ "$urlref" =~ \+ ]]; then
-				line=${line//\+/ }
+				urlref=${urlref//\+/ }
 			fi
 			if [[ "$urlref" =~ , ]]; then
 				number=$(echo "$urlref" | grep -Po ':\K(.*)')
@@ -241,7 +241,7 @@ if [[ $urlref != "" ]]; then
 					 families+=("$name${commas[$i]}")
 				done
 			else
-				families+=("$line")
+				families+=("$urlref")
 			fi
 		fi
 	fi
