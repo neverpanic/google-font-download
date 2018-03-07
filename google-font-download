@@ -61,6 +61,10 @@ usage() {
 		  Google's webfonts and generate a CSS file to use them.
 
 		OPTIONS
+		  -u URL, --url=URL
+		    Download the fonts specified in the URL. Note: You can mix
+		    it with normal arguments.
+
 		  -f FORMAT, --format=FORMAT
 		    Download the specified set of webfont formats from Google's
 		    servers. FORMAT is a comma-separated list of identifiers for
@@ -95,16 +99,19 @@ usage() {
 		  specification. If you want to download multiple font weights
 		  or styles, provide multiple font specs.
 
-		  For example, to download Open Sans in
-		   - light (300),
-		   - normal (400),
-		   - normal italic (400italic),
-		   - bold (700), and
-		   - bold italic (700italic),
-		  run:
-		    ${0:-google-font-download} "Open Sans:300" "Open Sans:400" \\
-		        "Open Sans:400italic" "Open Sans:700" \\
-		        "Open Sans:700italic"
+		  For example, to download Open Sans in light (300), normal
+		  (400), normal italic (400italic), bold (700), and bold italic
+		  (700italic), run:
+
+		    ${0:-google-font-download} "Open Sans:300" "Open Sans:400" "Open Sans:400italic" "Open Sans:700" "Open Sans:700italic"
+
+		  or in URL format:
+
+		    ${0:-google-font-download} --url="https://fonts.google.com/?selection.family=Open+Sans:300,400,400i,700,700i"
+
+		  You can also mix the arguments:
+
+		    ${0:-google-font-download} --url="https://fonts.google.com/?selection.family=Open+Sans:300,400,400i" "Open Sans:700" "Open Sans:700i"
 	EOF
 	exit 1
 }
