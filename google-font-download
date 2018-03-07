@@ -129,9 +129,7 @@ misuse_exit() {
 
 # function that act like split in perl. Syntax: splitarr IFS $var array
 splitarr() {
-  if [[ "$2" =~ $1 ]]; then
-    IFS="$1" read -r -a "$3" <<< "$2"
-  fi
+	IFS="$1" read -r -a "$3" <<< "$2"
 }
 
 # Check for modern getopt(1) that quotes correctly; see #1 for rationale
