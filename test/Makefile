@@ -1,4 +1,4 @@
-TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param font-weight font-style url-arg
+TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param output-long-param font-weight font-style url-arg
 TUT=../../google-font-download
 
 # tests use bashisms, avoid failures on systems where dash is used
@@ -62,6 +62,11 @@ format-param:
 output-param:
 	$(V)echo "---> Testing that -o works as expected"
 	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff -o "other.css" "Lora" && [ -f "other.css" ] && [ ! -f "font.css" ]); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+output-long-param:
+	$(V)echo "---> Testing that --output works as expected"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff --output="other.css" "Lora" && [ -f "other.css" ] && [ ! -f "font.css" ]); ret=$$?; rm -rf $@ && exit $$ret
 	$(V)echo "     OK"
 
 font-weight:
