@@ -143,7 +143,7 @@ fi
 # Parse options
 if [ $modern_getopt -eq 1 ]; then
 	ret=0
-	temp=$(getopt -o u:f:hl:o: --long url:,format:,help,languages:,output -n "${0:-google-font-download}" -- "$@") || ret=$?
+	temp=$(getopt -o u:f:hl:o: --long url:,format:,help,languages:,output: -n "${0:-google-font-download}" -- "$@") || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
