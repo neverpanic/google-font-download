@@ -70,10 +70,13 @@ usage() {
 		    servers. FORMAT is a comma-separated list of identifiers for
 		    webfont formats. Supported identifiers are eot, woff, woff2,
 		    svg, and ttf. Additionally, the special value \`all' expands
-		    to all supported formats. The default is \`$format'. Note
-		    that you may not really need all formats. In most cases,
-		    WOFF is enough. See http://caniuse.com/#search=woff for
-		    a current status.
+		    to all supported formats in the order woff2, woff, eot, svg,
+		    ttf. The default is \`$format'. The generated CSS file will
+		    contain the font formats in the given order, which browsers
+		    will process in-order. Note that you probably do not need
+		    all formats. In most cases, a combination of WOFF2 and WOFF
+		    is enough. See http://caniuse.com/#search=woff for a current
+		    status.
 
 		  -h, --help
 		    Display this message and exit.
@@ -308,7 +311,7 @@ fi
 declare -a formats
 if [ "$format" = "all" ]; then
 	# Deal with the special "all" value
-	formats=("eot" "woff" "woff2" "svg" "ttf")
+	formats=("woff2" "woff" "eot" "svg" "ttf")
 else
 	IFS=', ' read -r -a formats <<< "$format"
 	for f in "${formats[@]}"; do

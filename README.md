@@ -42,9 +42,13 @@ the terms.
         webfont formats. Supported identifiers are <code>eot</code>,
         <code>woff</code>, <code>woff2</code>, <code>svg</code>, and
         <code>ttf</code>. Additionally, the special value <code>all</code>
-        expands to all supported formats. The default is <code>all</code>. Note
-        that you may not really need all formats. In most cases, WOFF is enough.
-        See http://caniuse.com/#search=woff for a current status.</dd>
+        expands to all supported formats in the order <code>woff2</code>,
+        <code>woff</code>, <code>eot</code>, <code>svg</code>,
+        <code>ttf</code>. The default is <code>all</code>. The generated CSS
+        file will contain the font formats in the given order, which browsers
+        will process in-order. Note that you probably do not need all formats.
+        In most cases, a combination of WOFF2 and WOFF is enough. See
+        http://caniuse.com/#search=woff for a current status.</dd>
     <dt><code>-h</code>, <code>--help</code></dt>
     <dd>Display this message and exit.</dd>
     <dt><code>-l LANGSPEC</code>, <code>--languages=LANGSPEC</code></dt>
