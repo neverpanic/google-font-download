@@ -63,9 +63,9 @@ the terms.
     <dd>Write the generated CSS into <code>OUTPUT</code>. The file will be
         overwritten and will be created if it doesn't exist. The default is
         <code>font.css</code>.</dd>
-    <dt><code>-w WEBSITE</code>, <code>--website=WEBSITE</code></dt>
-    <dd>Prepend the website url to the font name. For example,
-        <code>--website="https://example.com/fonts/"</code> will output in
+    <dt><code>-b BASEPATH</code>, <code>--base-path=BASEPATH</code></dt>
+    <dd>Prepend the base path to the font name. For example,
+        <code>--base-path="https://example.com/fonts/"</code> will output in
         <code>font.css</code>: <code>url('https://example.com/fonts/FONT-NAME.woff2')</code>.</dd>
 </dl>
 
