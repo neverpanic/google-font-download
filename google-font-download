@@ -49,7 +49,7 @@ lang="latin"
 format="all"
 url="https://fonts.googleapis.com/css"
 urlref=""
-website=""
+basepath=""
 
 # Usage message
 usage() {
@@ -95,9 +95,9 @@ usage() {
 		    overwritten and will be created if it doesn't exist. The
 		    default is \`$css'.
 
-		  -w WEBSITE, --website=WEBSITE
-		    Prepend the website url to the font name. For example,
-		    --website="https://example.com/fonts/" will output in
+		  -b BASEPATH, --base-path=BASEPATH
+		    Prepend the base path to the font name. For example,
+		    --base-path="https://example.com/fonts/" will output in
 		    font.css: url('https://example.com/fonts/FONT-NAME.woff2').
 
 		POSITIONAL ARGUMENTS
@@ -152,7 +152,7 @@ fi
 # Parse options
 if [ $modern_getopt -eq 1 ]; then
 	ret=0
-	temp=$(getopt -o u:f:hl:o:w: --long url:,format:,help,languages:,output:,website: -n "${0:-google-font-download}" -- "$@") || ret=$?
+	temp=$(getopt -o u:f:hl:o:b: --long url:,format:,help,languages:,output:,base-path: -n "${0:-google-font-download}" -- "$@") || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
@@ -172,7 +172,7 @@ else
 
 	ret=0
 	# shellcheck disable=SC2048,SC2086
-	temp=$(getopt u:f:hl:o:w: $*) || ret=$?
+	temp=$(getopt u:f:hl:o:b: $*) || ret=$?
 	if [ $ret -ne 0 ]; then
 		echo >&2
 		usage
@@ -205,8 +205,8 @@ while true; do
 			css=$2
 			shift 2
 			;;
-		-w|--website)
-			website=$2
+		-b|--base-path)
+			basepath=$2
 			shift 2
 			;;
 		--)
@@ -477,19 +477,19 @@ for family in "${families[@]}"; do
 		# Generate the CSS statements required to include the downloaded file.
 		case "$uakey" in
 			eot)
-				printf >>"$css" "\\t\\turl('%s%s?#iefix') format('embedded-opentype')%s\\n" "$website" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s%s?#iefix') format('embedded-opentype')%s\\n" "$basepath" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			woff)
-				printf >>"$css" "\\t\\turl('%s%s') format('woff')%s\\n" "$website" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s%s') format('woff')%s\\n" "$basepath" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			woff2)
-				printf >>"$css" "\\t\\turl('%s%s') format('woff2')%s\\n" "$website" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s%s') format('woff2')%s\\n" "$basepath" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			ttf)
-				printf >>"$css" "\\t\\turl('%s%s') format('truetype')%s\\n" "$website" "${fontnameescaped}.$uakey" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s%s') format('truetype')%s\\n" "$basepath" "${fontnameescaped}.$uakey" "${terminator}"
 				;;
 			svg)
-				printf >>"$css" "\\t\\turl('%s%s#%s') format('svg')%s\\n" "$website" "${fontnameescaped}.${uakey}" "$svgname" "${terminator}"
+				printf >>"$css" "\\t\\turl('%s%s#%s') format('svg')%s\\n" "$basepath" "${fontnameescaped}.${uakey}" "$svgname" "${terminator}"
 				;;
 		esac
 	done
