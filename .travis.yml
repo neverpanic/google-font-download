@@ -1,2 +1,3 @@
 language: shell
+dist: bionic
 script: make && make test SHELL="bash -x"
