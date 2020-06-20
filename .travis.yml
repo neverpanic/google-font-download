@@ -1,8 +1,2 @@
-language: c
-install:
-    - sudo apt-get update -qq
-    - sudo apt-get install -q vim-common file libffi6 libgmp10
-    - curl -L "http://archive.ubuntu.com/ubuntu/pool/universe/s/shellcheck/shellcheck_0.4.6-1_amd64.deb" -o "/tmp/shellcheck_0.4.6-1_amd64.deb"
-    - '[ "$(openssl dgst -sha256 "/tmp/shellcheck_0.4.6-1_amd64.deb" | cut -d " " -f 2)" == "95b4d2577f25ae47918bd53068a5ff42d5c34e5f884daa8dae32253044b45370" ]'
-    - sudo dpkg -i "/tmp/shellcheck_0.4.6-1_amd64.deb"
+language: shell
 script: make && make test SHELL="bash -x"
