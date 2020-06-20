@@ -349,6 +349,7 @@ if [ "$(echo "test" | sed -E 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; the
 elif [ "$(echo "test" | sed -r 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; then
 	ESED="sed -r"
 else
+	# shellcheck disable=SC2230
 	err_exit "$(which sed) seems to lack extended regex support with -E or -r"
 fi
 
