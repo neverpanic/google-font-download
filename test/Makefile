@@ -1,4 +1,4 @@
-TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param output-long-param font-weight font-style url-arg
+TESTS=eot svg ttf woff woff2 fonts-with-spaces multiple-fonts format-param output-param output-long-param font-weight font-style font-style-short url-single-arg url-single-positional url-multiple-arg url-multiple-positional url-wrong
 TUT=../../google-font-download
 
 # tests use bashisms, avoid failures on systems where dash is used
@@ -79,7 +79,32 @@ font-style:
 	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff "Ubuntu:700italic" && grep "font-style: italic;" "font.css" >/dev/null); ret=$$?; rm -rf $@ && exit $$ret
 	$(V)echo "     OK"
 
-url-arg:
-	$(V)echo "---> Testing download with a URL"
+font-style-short:
+	$(V)echo "---> Testing short font style support"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff "Ubuntu:700i" && grep "font-style: italic;" "font.css" >/dev/null); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+url-single-arg:
+	$(V)echo "---> Testing single font download with a URL argument"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff -u "https://fonts.google.com/?query=lora&selection.family=Roboto:300,400"  && [ -f "Roboto_300.woff" ] && [ -f "Roboto_400.woff" ]); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+url-single-positional:
+	$(V)echo "---> Testing single font download with a URL as a positional argument"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff "https://fonts.google.com/?query=lora&selection.family=Roboto:300,400"  && [ -f "Roboto_300.woff" ] && [ -f "Roboto_400.woff" ]); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+url-multiple-arg:
+	$(V)echo "---> Testing multiple font download with a URL argument"
 	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff -u "https://fonts.google.com/?query=lora&selection.family=Lora|Ubuntu|Roboto:300,400|Mukta+Malar"  && [ -f "Ubuntu.woff" ] && [ -f "Lora.woff" ] && [ -f "Roboto_300.woff" ] && [ -f "Roboto_400.woff" ] && [ -f "Mukta_Malar.woff" ]); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+url-multiple-positional:
+	$(V)echo "---> Testing multiple font download with a URL as a positional argument"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff "https://fonts.google.com/?query=lora&selection.family=Lora|Ubuntu|Roboto:300,400|Mukta+Malar"  && [ -f "Ubuntu.woff" ] && [ -f "Lora.woff" ] && [ -f "Roboto_300.woff" ] && [ -f "Roboto_400.woff" ] && [ -f "Mukta_Malar.woff" ]); ret=$$?; rm -rf $@ && exit $$ret
+	$(V)echo "     OK"
+
+url-wrong:
+	$(V)echo "---> Testing that a wrong URL fails"
+	$(V)mkdir -p $@ && (cd $@ && $(TUT) -f woff "http://example.com"); ret=$$?; rm -rf $@ && [ "$$ret" = "2" ] && exit 0 || exit 2
 	$(V)echo "     OK"

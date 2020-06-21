@@ -2,7 +2,7 @@
 # vim:noet:sts=4:ts=4:sw=4:tw=120
 
 ##
-# Copyright (c) 2014-2015, Clemens Lang
+# Copyright (c) 2014-2020, Clemens Lang
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -29,6 +29,7 @@
 #  - Robert, github.com/rotx.
 #  - Thomas Papamichail, https://gist.github.com/pointergr
 #  - Musikid
+#  - Daniel Peukert
 ##
 
 ##
@@ -37,7 +38,7 @@
 
 # Ensure the bash version is new enough. If it isn't error out with a helpful error message rather than crashing later.
 if [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
-	echo "Error: This script needs Bash 4.x to run." >&2
+	echo "Error: This script needs Bash 4.x or newer to run." >&2
 	exit 1
 fi
 
@@ -47,7 +48,9 @@ set -euo pipefail
 css="font.css"
 lang="latin"
 format="all"
-url="https://fonts.googleapis.com/css"
+url_selection="https://fonts.google.com/"
+url_v1="https://fonts.googleapis.com/css"
+url_v2="https://fonts.googleapis.com/css2"
 urlref=""
 
 # Usage message
@@ -130,9 +133,68 @@ misuse_exit() {
 	usage
 }
 
-# function that act like split in perl. Syntax: splitarr IFS $var array
-splitarr() {
+# function that act like split in perl. Syntax: split_arr IFS $var array
+split_arr() {
 	IFS="$1" read -r -a "$3" <<< "$2"
+}
+
+# function that parses a single URL part/family. Syntax: parse_url_part $var
+parse_url_part() {
+	if [[ "$1" =~ \+ ]] || [[ "$1" =~ , ]] ; then
+		url_part="$1"
+		if [[ "$url_part" =~ \+ ]]; then
+			url_part=${url_part//\+/ }
+		fi
+		if [[ "$url_part" =~ , ]]; then
+			number=$(echo "$url_part" | grep -Po ':\K(.*)')
+			name=$(echo "$url_part" | grep -Po '(.*):')
+			split_arr ',' "$number" commas
+			for (( i = 0; i < ${#commas[@]}; i++ )); do
+				families+=("$name${commas[$i]}")
+			done
+		else
+			families+=("$url_part")
+		fi
+	else
+		families+=("$1")
+	fi
+}
+
+# function that parses a font string (either a URL or a font family name). Syntax: parse_font_string $var
+parse_font_string() {
+	case "$1" in
+		"")
+			return
+			;;
+		"http"*)
+			url="$(echo "$1" | $ESED 's/http(s)?:\/\///')"
+			;;
+		*)
+			families+=("$1")
+			return
+			;;
+	esac
+
+	case "https://$url" in
+		"$url_selection"*|"$url_v1"*)
+			url_string="$(echo "$url" | grep -Po 'family=\K(.*)')"
+			if [[ "$url_string" =~ \| ]]; then
+				split_arr '|' "$url_string" temp
+				for line in "${temp[@]}"
+				do
+					parse_url_part "$line"
+				done
+			else
+				parse_url_part "$url_string"
+			fi
+			;;
+		"$url_v2"*)
+			err_exit "Google Fonts API v2 URLs are not yet supported"
+			;;
+		*)
+			err_exit "Unsupported URL \`${url}'"
+			;;
+	esac
 }
 
 # Check for modern getopt(1) that quotes correctly; see #1 for rationale
@@ -206,103 +268,31 @@ while true; do
 	esac
 done
 
+# Check whether sed is GNU or BSD sed, or rather, which parameter enables extended regex support. Note that GNU sed does
+# have -E as an undocumented compatibility option on some systems.
+if [ "$(echo "test" | sed -E 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; then
+	ESED="sed -E"
+elif [ "$(echo "test" | sed -r 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; then
+	ESED="sed -r"
+else
+	# shellcheck disable=SC2230
+	err_exit "$(which sed) seems to lack extended regex support with -E or -r"
+fi
+
 
 declare -a families
 families=()
 declare -a commas
 commas=()
-# Detect and parse url
-if [[ $urlref != "" ]]; then
-	urlref=$(echo "$urlref" | grep -Po 'family=\K(.*)')
-	if [[ "$urlref" =~ \| ]]; then
-		splitarr '|' "$urlref" temp
-		for line in "${temp[@]}"
-		do
-			if [[ "$line" =~ \+ ]] || [[ "$line" =~ , ]] ; then
-				if [[ "$line" =~ \+ ]]; then
-					line=${line//\+/ }
-				fi
-				if [[ "$line" =~ , ]]; then
-					number=$(echo "$line" | grep -Po ':\K(.*)')
-					name=$(echo "$line" | grep -Po '(.*):')
-					splitarr ',' "$number" commas
-					for (( i = 0; i < ${#commas[@]}; i++ )); do
-						 families+=("$name${commas[$i]}")
-					done
-				else
-					families+=("$line")
-				fi
-			else
-				families+=("$line")
-			fi
-		done
-	else
-		if [[ "$urlref" =~ \+ ]] || [[ "$urlref" =~ , ]] ; then
-			if [[ "$urlref" =~ \+ ]]; then
-				urlref=${urlref//\+/ }
-			fi
-			if [[ "$urlref" =~ , ]]; then
-				number=$(echo "$urlref" | grep -Po ':\K(.*)')
-				name=$(echo "$urlref" | grep -Po '(.*):')
-				splitarr ',' "$number" commas
-				for (( i = 0; i < ${#commas[@]}; i++ )); do
-					 families+=("$name${commas[$i]}")
-				done
-			else
-				families+=("$urlref")
-			fi
-		fi
-	fi
-fi
 
-# Validate font family input
+# Parse and validate url input
+parse_font_string "$urlref"
+
+# Parse and validate font family input
 for family do
-	# Directly parse url
-	if [[ "$family" =~ http ]]; then
-		family=$(echo "$family" | grep -Po 'family=\K(.*)')
-		if [[ "$family" =~ \| ]]; then
-			splitarr '|' "$family" temp
-			for line in "${temp[@]}"
-			do
-				if [[ "$line" =~ \+ ]] || [[ "$line" =~ , ]] ; then
-					if [[ "$line" =~ \+ ]]; then
-						line=${line//\+/ }
-					fi
-					if [[ "$line" =~ , ]]; then
-						number=$(echo "$line" | grep -Po ':\K(.*)')
-						name=$(echo "$line" | grep -Po '(.*):')
-						splitarr ',' "$number" commas
-						for (( i = 0; i < ${#commas[@]}; i++ )); do
-							families+=("$name${commas[$i]}")
-						done
-					else
-						families+=("$line")
-					fi
-				else
-					families+=("$line")
-				fi
-			done
-		else
-			if [[ "$family" =~ \+ ]] || [[ "$family" =~ , ]] ; then
-				if [[ "$family" =~ \+ ]]; then
-					family=${family//\+/ }
-				fi
-				if [[ "$family" =~ , ]]; then
-					number=$(echo "$family" | grep -Po ':\K(.*)')
-					name=$(echo "$family" | grep -Po '(.*):')
-					splitarr ',' "$number" commas
-					for (( i = 0; i < ${#commas[@]}; i++ )); do
-						 families+=("$name${commas[$i]}")
-					done
-				else
-					families+=("$family")
-				fi
-			fi
-		fi
-	else
-	families+=("$family")
-	fi
+	parse_font_string "$family"
 done
+
 if [ ${#families[@]} -eq 0 ]; then
 	misuse_exit "No font families given"
 fi
@@ -342,17 +332,6 @@ elif [ "$css" = "-" ]; then
 fi
 
 
-# Check whether sed is GNU or BSD sed, or rather, which parameter enables extended regex support. Note that GNU sed does
-# have -E as an undocumented compatibility option on some systems.
-if [ "$(echo "test" | sed -E 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; then
-	ESED="sed -E"
-elif [ "$(echo "test" | sed -r 's/([st]+)$/xx\1/' 2>/dev/null)" == "texxst" ]; then
-	ESED="sed -r"
-else
-	# shellcheck disable=SC2230
-	err_exit "$(which sed) seems to lack extended regex support with -E or -r"
-fi
-
 # Store the useragents we're going to use to trick Google's servers into serving us the correct CSS file.
 declare -A useragent
 # ShellCheck doesn't correctly notice our dynamic use of these variables.
@@ -378,7 +357,7 @@ for family in "${families[@]}"; do
 	# Test whether the chosen combination of font and language subset
 	# exists; Google returns HTTP 400 if it doesn't
 	ret=0
-	css_string=$(curl -sSf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" 2>&1) || ret=$?
+	css_string=$(curl -sSf --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url_v1" 2>&1) || ret=$?
 	if [ $ret -ne 0 ]; then
 		errors=1
 		printf >&2 " error: %s\\n" "${css_string}"
@@ -445,7 +424,7 @@ for family in "${families[@]}"; do
 		else
 			pattern="https:\\/\\/[^\\)]+"
 		fi
-		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url" | grep -Eo "$pattern" | sort -u)
+		file=$(curl -sf -A "${useragent[$uakey]}" --get --data-urlencode "family=$family" --data-urlencode "subset=$lang" "$url_v1" | grep -Eo "$pattern" | sort -u)
 		printf >>"$css" "\\t\\t/* from %s */\\n" "$file"
 		if [ "$uakey" == "svg" ]; then
 			# SVG fonts need the font after a hash symbol, so extract the correct name from Google's CSS
